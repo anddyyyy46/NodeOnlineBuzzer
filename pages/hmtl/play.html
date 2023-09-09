@@ -1,0 +1,73 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Play</title>
+    <link rel="icon" href="../favicon.ico">
+    <link rel="stylesheet" type="text/css" href="../css/play.css">
+</head>
+<body>
+    <div id="game">
+        <h1>BUZZER</h1>
+        <p>You can also buzzer with Enter</p>
+        <div class="buzzerDiv">
+            <img id="buzzer" onclick="handleBuzzer()" src="../Buzzer.png"/>
+        </div>
+        <div id="buzzered">
+
+        </div>
+    </div>
+</body>
+<script>
+    const buzzer = document.getElementById("buzzer")
+    const buzzered = document.getElementById("buzzered")
+    const roomId = sessionStorage.getItem("roomId")
+    const wsCon = sessionStorage.getItem("wsConnectionKey")
+    const playerId = sessionStorage.getItem("playerId")
+    let isBuzzerble = true;
+    const socket = new WebSocket(`wss://buzzerws.andreas-rautenberg.de/play?roomId=${roomId}&token=${wsCon}&playerId=${playerId}`)	
+
+    const handleBuzzer = ()=>{
+        socket.send("id:"+playerId)
+    }
+
+    socket.onmessage = ({data}) =>{
+     	if(data === "admin"){
+            const unlockNotBuzzeredBtns = document.createElement("button")
+            unlockNotBuzzeredBtns.textContent = "unlock all not buzzered buzzer"
+	    unlockNotBuzzeredBtns.onclick = (event) =>{
+                socket.send("unlock")
+            }
+
+            const unlockALLBuzzerBtns = document.createElement("button")
+            unlockALLBuzzerBtns.textContent = "unlock all buzzer"
+            unlockALLBuzzerBtns.onclick = (event) =>{
+                socket.send("unlockAll")
+            }
+
+            const container = document.getElementById("game")
+            container.appendChild(unlockALLBuzzerBtns)
+            container.appendChild(unlockNotBuzzeredBtns)
+        }
+        else if (data === "ping") socket.send("pong")
+        else if(data === "unlocked"){
+            buzzer.style.pointerEvents = "auto"
+	        buzzer.src = "../Buzzer.png"
+            buzzered.innerHTML = "";
+	        isBuzzerble = true;
+        }
+        else{
+	    buzzer.src = "../Unbuzzer.png";
+            buzzer.style.pointerEvents = "none"
+	        isBuzzerble = false;
+            const buzzeredUser = document.createElement("h1")
+            buzzeredUser.textContent = data + " buzzerd"
+            buzzeredUser.style.color = "white"
+            buzzered.appendChild(buzzeredUser)
+        }
+    }
+   document.addEventListener("keypress", (e)=>{
+        if(e.code === "Enter" && isBuzzerble) handleBuzzer()
+   })
+</script>
+</html>

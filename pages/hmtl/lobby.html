@@ -1,0 +1,66 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lobby</title>
+    <link rel="icon" href="../favicon.ico">
+    <link rel="stylesheet" type="text/css" href="../css/lobby.css">
+</head>
+<body id="body">
+    <div class="items">
+        <h3 id="header">Waiting for other players</h3>
+	<div id="roomId"></div>
+        <div class="player">
+            <p>Players:</p>
+            <div id="players"></div>
+        </div>
+        <p class="info">Tell everybody the password and roomId</p>
+        <button class="submitBtn" onclick="handleStart()">Start</button>
+    </div>    
+</body>
+<script>
+    const roomId = sessionStorage.getItem("roomId")
+    const wsCon = sessionStorage.getItem("wsConnectionKey")
+    const playerId = sessionStorage.getItem("playerId")
+    const roomIdNode = document.createElement("h3")
+    roomIdNode.textContent = "RoomId: "+roomId
+    roomIdNode.style.color = "white"
+    const container = document.getElementById("roomId")
+    const header = document.getElementById("header")
+    const text = header.textContent
+    container.appendChild(roomIdNode)
+    const socket = new WebSocket(`wss://buzzerws.andreas-rautenberg.de/join?roomId=${roomId}&token=${wsCon}&playerId=${playerId}`)
+
+    const handleStart = ()=>{
+        socket.send("start")
+    }
+
+
+    socket.onmessage = ({data}) =>{
+        if(data === "start") window.location.href = "https://buzzer.andreas-rautenberg.de/play"
+        else if(data === "admin") return;
+        else if (data === "ping") socket.send("pong")
+        else{
+            const players = JSON.parse(data)
+            const playerContainer = document.getElementById("players")
+            playerContainer.innerHTML = "";
+            for(let i = 0; i<players.length; i++){
+                const newPlayerEle = document.createElement("p")
+                newPlayerEle.textContent = players[i].name
+                playerContainer.appendChild(newPlayerEle)
+            }
+        }
+    }
+   const points = [".", "..", "..."]
+   let index = 0;
+   setInterval(async()=>{
+    if(index>=3) {
+            header.textContent = text
+            index = 0;
+        }
+        else{
+            header.textContent = text+points[index++].toString();
+        } 
+   }, 1000)
+</script>
+</html>

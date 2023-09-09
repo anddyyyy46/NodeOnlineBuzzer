@@ -1,0 +1,61 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Room</title>
+    <link rel="icon" href="../favicon.ico">
+    <link rel="stylesheet" type="text/css" href="../css/createRoom.css">
+</head>
+<body>
+   <h1>Create Room</h1>
+    <div class="items">
+        <div class="username">
+            <p>Username</p>
+            <input onchange="changeHandlerUn(event)"/>
+        </div>
+        <div class="password">
+            <p>Password</p>
+            <input id="pwInput" type="password" onchange="changeHandlerPw(event)"/>
+        </div>
+        <button class="submitBtn" onclick="clickHandler()">Submit</button>
+    </div> 
+</body>
+<script>
+    let pw;
+    let username;
+    const changeHandlerUn = (e) =>{
+        username = e.target.value;
+    }
+    const changeHandlerPw = (e) =>{
+        pw = e.target.value
+    }
+    
+    const clickHandler = async()=>{
+            const res = await fetch("https://buzzerapi.andreas-rautenberg.de/createRoom", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body:JSON.stringify({
+                password: pw,
+                username: username 
+            })
+            
+        })
+        const data = await res.json()
+        if(data.worked === true){
+            sessionStorage.setItem("username", data.name)
+            sessionStorage.setItem("roomId", data.roomId)
+            sessionStorage.setItem("wsConnectionKey", data.wsConnectionKey)
+            sessionStorage.setItem("playerId", data.playerId) 
+            window.location.href = "https://buzzer.andreas-rautenberg.de/lobby"
+        }       
+    }
+    document.addEventListener("keypress", (e)=>{
+        if(e.code === "Enter"){
+		pw = document.getElementById("pwInput").value		 
+		clickHandler()
+	}
+    })
+   </script>
+</html>

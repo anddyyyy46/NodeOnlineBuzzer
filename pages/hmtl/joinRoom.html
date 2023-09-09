@@ -1,0 +1,75 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Join Room</title>
+    <link rel="icon" href="../favicon.ico">
+    <link rel="stylesheet" type="text/css" href="../css/joinRoom.css">
+</head>
+<body>
+    <h1>Join Room</h1>
+    <div class="items" id="itemDiv"> 
+        <div class="roomId">
+            <p>RoomId</p>
+            <input type="number" onchange="changeHandlerRid(event)" onkeypress="handleKeyPress(event)"/>
+        </div>
+        <div class="username"> 
+            <p>Username</p>
+            <input onchange="changeHandlerUn(event)" onkeypress="handleKeyPress(event)"/>
+        </div>
+        <div class="password">
+            <p>Password</p>
+            <input id="pwInput" type="password" onchange="changeHandlerPw(event)" onkeypress="handleKeyPress(event)"/>
+        </div>
+        <button class="submitBtn" onclick="clickHandler()">Submit</button>
+    </div>
+</body>
+<script>
+    let pw;
+    let username;
+    let roomId;
+    const changeHandlerUn = (e) =>{
+        username = e.target.value;
+    }
+    const changeHandlerPw = (e) =>{
+        pw = e.target.value
+    }
+    const changeHandlerRid = (e) =>{
+        roomId = e.target.value
+    }
+    
+    const clickHandler = async()=>{
+        const res = await fetch(`https://buzzerapi.andreas-rautenberg.de/room/${roomId}/connect`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body:JSON.stringify({
+                password: pw,
+                username: username 
+            })
+            
+        })
+        const data = await res.json()
+        if(data.worked === true){
+            sessionStorage.setItem("roomId", roomId)
+            sessionStorage.setItem("username", data.username)
+            sessionStorage.setItem("wsConnectionKey", data.wsConnectionKey)
+            sessionStorage.setItem("playerId", data.playerId)
+            window.location.href = "https://buzzer.andreas-rautenberg.de/lobby"
+        }else{
+            const container = document.getElementById("itemDiv")
+            const errorNode = document.createElement("p")
+            errorNode.textContent = "Wrong password or roomId"
+            errorNode.style.color = "red"
+            container.appendChild(errorNode)
+        }
+    }
+    function handleKeyPress(event){
+        if(event.key === "Enter"){
+		pw = document.getElementById("pwInput").value
+		 clickHandler()
+	}  
+  }
+</script>
+</html>

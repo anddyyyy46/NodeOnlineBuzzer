@@ -1,0 +1,37 @@
+body{
+    font-family: sans-serif;
+    background-color: black;
+}
+.title{
+    font-size: 4vh;
+    margin: 5vh;
+    text-align: center;
+    color: white;
+}
+.items{
+    margin: auto;
+    width: 80%;
+    padding: 1%;
+}
+.items div{
+    cursor: pointer;
+    margin: 3vh;
+    padding: 5%;
+    border: 1px solid lightgray;
+}
+.items h1{
+    font-size: 4vh;
+    font: bold;
+    text-decoration: none;
+    color: white;
+}
+.items div:hover{
+    transition: 0.3s;
+    background-color: lightgray;
+    
+}
+.items div:hover h1{
+    transition: 0.3s;
+    color: black;
+    
+}

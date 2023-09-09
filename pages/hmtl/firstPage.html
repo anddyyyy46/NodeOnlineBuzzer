@@ -1,0 +1,25 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Join or Create Room</title>
+    <link rel="icon" href="../favicon.ico">
+    <link rel="stylesheet" type="text/css" href="../css/firstPage.css">
+</head>
+<body>
+    <h1 class="title">Live Buzzer</h1>
+    <div class="items">
+        <div class="createRoom" onclick="hrefLink('createRoom')">
+            <h1>Create Room</h1>
+        </div>
+        <div class="joinRoom" onclick="hrefLink('joinRoom')">
+            <h1>Join Room</h1>
+        </div>
+    </div>
+</body>
+<script>
+    function hrefLink(endpoint){
+        window.location.href=`https://buzzer.andreas-rautenberg.de/${endpoint}`;
+    }
+</script>
+</html>
