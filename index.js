@@ -3,6 +3,7 @@ import pg from "pg"
 import { WebSocketServer } from "ws"
 import { URL } from "url"
 import cors from "cors"
+import bcrypt from "bcrypt";
 
 const conString = `postgres://${process.env.DbUser}:${process.env.pwDb}@${process.env.DbIP}:${process.env.DbPORT}/${process.env.DbName}`
 const client = new pg.Client(conString)
@@ -11,6 +12,8 @@ const wss = new WebSocketServer({ port: 5555 })
 const app = express();
 app.use(express.json())
 app.use(cors())
+
+const pwHashSaltRounds = 10
 
 function sendPing(ws) {
     ws.send("ping")
@@ -86,11 +89,13 @@ app.post("/createRoom", async (req, res) => {
     tomorrow = tomorrow.toISOString().substring(0, 10)
     const wsConnectionKey = Math.random().toString().substring(2, 10)
     try{
-        const roomId = (await client.query(`INSERT INTO rooms(createdat, expireat, password, wsconnection) VALUES($1,$2,$3,$4) RETURNING id;`,[currentdate, tomorrow, password, wsConnectionKey])).rows[0].id
+        const passwordHash = await bcrypt.hash(password, pwHashSaltRounds)
+        const roomId = (await client.query(`INSERT INTO rooms(createdat, expireat, password, wsconnection) VALUES($1,$2,$3,$4) RETURNING id;`,[currentdate, tomorrow, passwordHash, wsConnectionKey])).rows[0].id
         const playerId = (await client.query(`INSERT INTO users (name, relatedroom) VALUES ($1,$2) RETURNING id;`, [username, roomId])).rows[0].id
         await client.query(`UPDATE rooms SET adminPlayerId = $1 WHERE id = $2;`, [playerId, roomId])
         res.send({"worked": true, "name": username, "roomId": roomId, "wsConnectionKey": wsConnectionKey, "playerId": playerId })
     }catch(e){
+        console.log(e)
         res.status(403)
         res.send("Error")
         return
@@ -102,9 +107,9 @@ app.post("/room/:id/connect", async (req, res) => {
     const roomId = req.params.id
     const password = req.body.password
     try{
-        let rightRoomPassword = await client.query(`SELECT password FROM rooms WHERE id = $1;`, [roomId])
-        rightRoomPassword = rightRoomPassword.rows[0].password
-        if (password == rightRoomPassword) {
+        let rightRoomPasswordHash = await client.query(`SELECT password FROM rooms WHERE id = $1;`, [roomId])
+        rightRoomPasswordHash = rightRoomPasswordHash.rows[0].password
+        if (await bcrypt.compare(password, rightRoomPasswordHash)) {
             const playerId = (await client.query(`INSERT INTO users (name, relatedroom) VALUES ($1, $2) RETURNING id;`, [username, roomId])).rows[0].id
             let wsConnectionKey = await client.query(`SELECT wsconnection FROM rooms WHERE id = $1;`, [roomId])
             wsConnectionKey = wsConnectionKey.rows[0].wsconnection
