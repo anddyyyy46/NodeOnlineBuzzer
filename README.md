@@ -1,6 +1,6 @@
 # NodeOnlineBuzzer
 
-Online Buzzer System
+Online Buzzer System using websocket
 
 ### Live: https://buzzer.andreas-rautenberg.de/
 
