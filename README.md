@@ -2,8 +2,6 @@
 
 Online Buzzer System using websocket
 
-### Live: https://buzzer.andreas-rautenberg.de/
-
 ## Installation:
 ```
 git clone https://github.com/anddyyyy46/NodeOnlineBuzzer.git
